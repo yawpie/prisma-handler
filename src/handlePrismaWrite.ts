@@ -1,54 +1,6 @@
-import { Prisma } from "@prisma/client";
 import HttpError from "./error";
 import { Logger, LoggerClass } from "./logger";
 import { randomUUID } from "crypto";
-
-// export async function handlePrismaWrite<T>(
-//   fn: () => Promise<T>,
-//   errorFactory: ErrorFactory,
-//   defaultMessage?: string,
-//   options?: {
-//     traceId?: string;
-//     operation?: string;
-//   }
-// ): Promise<T> {
-//   const traceId = options?.traceId ?? randomUUID();
-//   const operation = options?.operation ?? "prisma-write";
-//   const start = Date.now();
-
-//   const logger: Logger = new LoggerClass();
-//   logger.info("Transaction started", { traceId, operation });
-
-//   try {
-//     const result = await fn();
-
-//     logger.info("Transaction committed", {
-//       traceId,
-//       operation,
-//       durationMs: Date.now() - start,
-//     });
-
-//     return result;
-//   } catch (error: any) {
-//       logger?.error?.("Transaction failed", {
-//         traceId,
-//         operation,
-//         durationMs: Date.now() - start,
-//         error,
-//       });
-
-//       if (error.code === "P2002") {
-//         throw errorFactory("Duplicate value", 400);
-//       }
-
-//       if (error.code === "P2003") {
-//         throw errorFactory("Foreign key constraint failed", 400);
-//       }
-
-//       throw errorFactory(defaultMessage ?? "Database error", 500);
-//     }
-// }
-
 export async function handlePrismaWrite<T>(
   fn: () => Promise<T>,
   logger: Logger,
