@@ -1,0 +1,31 @@
+{
+  "name": "prisma-handler",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "prisma",
+    "handler",
+    "utility"
+  ],
+  "author": "yawpie",
+  "license": "ISC",
+  "description": "A simple handler for managing Prisma operations",
+  "devDependencies": {
+    "@prisma/client": "^5.0.0",
+    "prisma": "^5.0.0",
+    "@types/node": "^22.15.29",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@prisma/client": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": false
+    }
+  }
+}
