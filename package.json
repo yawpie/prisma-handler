@@ -1,16 +1,16 @@
 {
   "name": "prisma-operation-handler",
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "type": "commonjs",
+  "type": "module",
   "sideEffects": false,
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
   "keywords": [
     "prisma",
@@ -21,9 +21,10 @@
   "license": "ISC",
   "description": "A simple handler for managing Prisma operations",
   "devDependencies": {
-    "prisma": "^5.0.0",
     "@types/node": "^22.15.29",
+    "prisma": "^5.0.0",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
@@ -38,7 +39,7 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     }
   }
 }
