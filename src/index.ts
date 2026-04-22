@@ -2,89 +2,48 @@ import { PrismaClient } from "@prisma/client";
 import { Logger, LoggerClass } from "./logger";
 import { handlePrismaWrite } from "./handlePrismaWrite";
 import { handlePrismaNotFound } from "./handleNotFound";
-import { ErrorFactory } from "./error";
-
+// import {  } from "./error";
 
 export function createPrismaUtils(
   prisma: PrismaClient,
   config?: {
-    errorFactory: ErrorFactory;
     logger?: Logger;
   },
 ) {
-  
   let logger: Logger = new LoggerClass();
   if (config) {
-      errorFactory = config.errorFactory;
-      logger = config.logger || logger;
+    logger = config.logger || logger;
   }
 
-  // async function handleNotFound<T>(
-  //   fn: (prisma: PrismaClient) => Promise<T | null>,
-  //   message = "Resource not found",
-  // ): Promise<T> {
-  //   try {
-  //     const result = await fn(prisma);
+  /**
+   * Handles Prisma write operations with error handling and logging.
+   * @param fn function to execute
+   * @param defaultErrorMessage default message for error
+   * @param options additional options like traceId and operation name for logging
+   * @return result of the function or throws an error with appropriate message and status code
+   */
+  const handleWrite = <T>(
+    fn: () => Promise<T>,
+    defaultErrorMessage?: string,
+    options?: {
+      traceId?: string;
+      operation?: string;
+    },
+  ) => {
+    logger.info("Prisma write operation started", {
+      operation: options?.operation,
+      traceId: options?.traceId,
+    });
+    return handlePrismaWrite(fn, logger, defaultErrorMessage, options);
+  };
 
-  //     if (!result || (Array.isArray(result) && result.length === 0)) {
-  //       throw errorFactory(message);
-  //     }
-
-  //     return result;
-  //   } catch (error: any) {
-  //     if (error.code === "P2025") {
-  //       throw errorFactory(message);
-  //     }
-  //     throw error;
-  //   }
-  // }
-
-  // async function handleWrite<T>(
-  //   fn: (prisma: PrismaClient) => Promise<T>,
-  //   options?: {
-  //     traceId?: string;
-  //     operation?: string;
-  //     defaultMessage?: string;
-  //   },
-  // ): Promise<T> {
-  //   const traceId = options?.traceId ?? randomUUID();
-  //   const operation = options?.operation ?? "prisma-write";
-  //   const start = Date.now();
-
-  //   logger?.info?.("Transaction started", { traceId, operation });
-
-  //   try {
-  //     const result = await fn(prisma);
-
-  //     logger?.info?.("Transaction committed", {
-  //       traceId,
-  //       operation,
-  //       durationMs: Date.now() - start,
-  //     });
-
-  //     return result;
-  //   } catch (error: any) {
-  //     logger?.error?.("Transaction failed", {
-  //       traceId,
-  //       operation,
-  //       durationMs: Date.now() - start,
-  //       error,
-  //     });
-
-  //     if (error.code === "P2002") {
-  //       throw errorFactory("Duplicate value", 400);
-  //     }
-
-  //     if (error.code === "P2003") {
-  //       throw errorFactory("Foreign key constraint failed", 400);
-  //     }
-
-  //     throw errorFactory(options?.defaultMessage ?? "Database error", 500);
-  //   }
-  // }
   return {
     prisma,
     handlePrismaNotFound,
-    handlePrismaWrite,
+    handleWrite,
   };
 }
+export {Logger} from "./logger";
+export {handlePrismaNotFound} from "./handleNotFound";
+export {handlePrismaWrite} from "./handlePrismaWrite";
+export * from "./error";

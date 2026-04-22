@@ -61,8 +61,6 @@ export async function handlePrismaWrite<T>(
   const traceId = options?.traceId ?? randomUUID();
   const operation = options?.operation ?? "prisma-write";
   const start = Date.now();
-  //   logger.info("Transaction started", { traceId, operation });
-  logger.info("Transaction started", { traceId, operation });
 
   try {
     const result = await fn();
@@ -96,10 +94,11 @@ export async function handlePrismaWrite<T>(
       case "P2006":
         throw new HttpError("Null constraint violation", 400);
       default: {
-        throw new HttpError(defaultMessage ?? "Something happened :( check logs", 500);
+        throw new HttpError(
+          defaultMessage ?? "Something happened :( check logs",
+          500,
+        );
       }
     }
-
-    throw error;
   }
 }

@@ -1,9 +1,15 @@
 {
-  "name": "prisma-handler",
-  "version": "1.0.0",
+  "name": "prisma-operation-handler",
+  "version": "0.0.1-alpha",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc --watch"
   },
   "keywords": [
     "prisma",
@@ -26,6 +32,12 @@
   "peerDependenciesMeta": {
     "@prisma/client": {
       "optional": false
+    }
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     }
   }
 }
