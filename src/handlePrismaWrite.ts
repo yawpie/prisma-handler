@@ -1,4 +1,4 @@
-import {HttpError} from "./error";
+import { HttpError } from "./error";
 import { Logger } from "./logger";
 import { randomUUID } from "crypto";
 export async function handlePrismaWrite<T>(

@@ -1,7 +1,4 @@
-// export type ErrorFactory = (message: string, status: number = 500) => Error;
-
 type StatusCode = 200 | 201 | 202 | 400 | 401 | 403 | 404 | 500;
-
 
 export class HttpError extends Error {
   name: string;
@@ -10,12 +7,11 @@ export class HttpError extends Error {
 
   constructor(message: string, statusCode: StatusCode) {
     super(message);
-    this.name = this.constructor.name
+    this.name = this.constructor.name;
     this.status = statusCode;
     this.stack = new Error().stack;
 
     Object.setPrototypeOf(this, new.target.prototype);
-
   }
 }
 
