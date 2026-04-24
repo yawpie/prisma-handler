@@ -1,17 +1,7 @@
 import { randomUUID } from "crypto";
-import { BadRequestError } from "./error";
+import { BadRequestError, NotFoundError } from "./error";
 import { Logger } from "./logger";
 
-/**
- * Wraps a Prisma query and handles "not found" errors.
- * Works with `findUniqueOrThrow` or manually null-checking.
- * @param fn function to execute
- * @param logger optional logger for error logging
- * @param options additional options like traceId and operation name for logging
- * @param notFoundMessage message to display when resource is not found
- * @returns the result of the function or throws a BadRequestError
- * @throws BadRequestError if the resource is not found
- */
 export async function handlePrismaNotFound<T>(
   fn: () => Promise<T | null>,
   logger?: Logger,
@@ -22,7 +12,7 @@ export async function handlePrismaNotFound<T>(
   notFoundMessage = "Resource not found",
 ): Promise<T> {
   const traceId = options?.traceId ?? randomUUID();
-  const operation = options?.operation ?? "prisma-write";
+  const operation = options?.operation ?? "prisma-read";
   const start = Date.now();
 
   try {
@@ -33,7 +23,7 @@ export async function handlePrismaNotFound<T>(
         operation,
         durationMs: Date.now() - start,
       });
-      throw new BadRequestError(notFoundMessage);
+      throw new NotFoundError(notFoundMessage);
     }
     return result;
   } catch (error: any) {
@@ -43,7 +33,7 @@ export async function handlePrismaNotFound<T>(
         operation,
         durationMs: Date.now() - start,
       });
-      throw new BadRequestError(notFoundMessage);
+      throw new NotFoundError(notFoundMessage);
     }
     throw error;
   }

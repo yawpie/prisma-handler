@@ -37,13 +37,36 @@ export function createPrismaUtils(
     return handlePrismaWrite(fn, logger, defaultErrorMessage, options);
   };
 
+  /**
+   * Wraps a Prisma query and handles "not found" errors.
+   * Works with `findUniqueOrThrow` or manually null-checking.
+   * @param fn function to execute
+   * @param logger optional logger for error logging
+   * @param options additional options like traceId and operation name for logging
+   * @param notFoundMessage message to display when resource is not found
+   * @returns the result of the function or throws a BadRequestError
+   * @throws BadRequestError if the resource is not found
+   */
+  const handleNotFound = <T>(
+    fn: () => Promise<T | null>,
+    options?: {
+      traceId?: string;
+      operation?: string;
+    },
+    notFoundMessage = "Resource not found",
+  ) => {
+    logger.info("Prisma read operation started", {
+      operation: options?.operation,
+      traceId: options?.traceId,
+    });
+    return handlePrismaNotFound(fn, logger, options, notFoundMessage);
+  };
+
   return {
     prisma,
-    handlePrismaNotFound,
+    handleNotFound,
     handleWrite,
   };
 }
-export {Logger} from "./logger";
-export {handlePrismaNotFound} from "./handleNotFound";
-export {handlePrismaWrite} from "./handlePrismaWrite";
+export { Logger } from "./logger";
 export * from "./error";

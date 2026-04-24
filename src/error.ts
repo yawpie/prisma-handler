@@ -1,6 +1,6 @@
 // export type ErrorFactory = (message: string, status: number = 500) => Error;
 
-export type StatusCode = 200 | 201 | 202 | 400 | 401 | 403 | 404 | 500;
+type StatusCode = 200 | 201 | 202 | 400 | 401 | 403 | 404 | 500;
 
 
 export default class HttpError extends Error {

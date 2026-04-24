@@ -37,7 +37,7 @@ import { createPrismaUtils } from "prisma-operation-handler";
 
 const prisma = new PrismaClient();
 
-const { handleWrite, handlePrismaNotFound } = createPrismaUtils(prisma);
+const { handleWrite, handleNotFound } = createPrismaUtils(prisma);
 
 async function createUser() {
   return handleWrite(
@@ -57,8 +57,9 @@ async function createUser() {
 }
 
 async function getUserById(id: string) {
-  return handlePrismaNotFound(
+  return handleNotFound(
     () => prisma.user.findUnique({ where: { id } }),
+    { operation: "get-user-by-id" },
     "User not found",
   );
 }
@@ -80,9 +81,9 @@ Parameters:
 
 Returns:
 
-- `prisma`: the same Prisma client you passed in.
-- `handleWrite`: write-operation wrapper.
-- `handlePrismaNotFound`: not-found wrapper.
+- prisma: the same Prisma client you passed in.
+- handleWrite: write-operation wrapper.
+- handleNotFound: not-found wrapper.
 
 ### `handleWrite(fn, defaultErrorMessage?, options?)`
 
@@ -102,21 +103,24 @@ Behavior:
 - On known Prisma errors, throws `HttpError` with mapped status/message.
 - On unknown errors, throws `HttpError(defaultErrorMessage ?? "Something happened :( check logs", 500)`.
 
-### `handlePrismaNotFound(fn, notFoundMessage?)`
+### `handleNotFound(fn, notFoundMessage?)`
 
 Wraps a query operation and throws when result is missing.
 
 Parameters:
 
-- `fn`: async function returning `T | null`.
-- `notFoundMessage` (optional): defaults to `"Resource not found"`.
+- `fn`: `async function returning T | null`.
+- options (optional):
+  - `traceId?: string`
+  - `operation?: string`
+- `notFoundMessage (optional)`: defaults to "Resource not found".
 
 Behavior:
 
-- Throws `BadRequestError(notFoundMessage)` when:
-  - returned result is `null`/falsy
+- Throws `NotFoundError(notFoundMessage)` when:
+  - returned result is null/falsy
   - returned result is an empty array
-  - Prisma throws `P2025`
+  - Prisma throws P2025
 
 ## Prisma Error Mapping (Write Wrapper)
 
@@ -152,24 +156,22 @@ You can inject your own logger implementation through `createPrismaUtils(prisma,
 
 ### Scripts
 
-- `npm run build` compiles TypeScript to `dist`.
-- `npm test` is currently a placeholder and exits with an error.
+- `npm run build` compiles and bundles the package to `dist`.
+- `npm run dev` starts `tsup` in watch mode.
 
 ### TypeScript Build Output
 
-Current compiler setup:
+The package is built with tsup and outputs:
 
-- target: `ES2020`
-- module: `CommonJS`
-- declarations: enabled
-- rootDir: `src`
-- outDir: `dist`
+- CJS and ESM formats
+- Type declarations (.d.ts)
+- sourcemaps
 
 ## Current Notes
 
 - The package currently exports the Prisma utility factory and wrappers through the main entry.
 - Some custom error subclasses exist in source and are used internally for behavior.
-- The not-found helper currently throws `BadRequestError` for not-found conditions.
+- The not-found helper currently throws `NotFoundError` for not-found conditions.
 
 ## License
 
