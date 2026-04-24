@@ -7,12 +7,12 @@ import { handlePrismaNotFound } from "./handlePrismaNotFound";
 export function createPrismaUtils(
   prisma: PrismaClient,
   config?: {
-    logger?: Logger;
+    logger: Logger;
   },
 ) {
   let logger: Logger = new LoggerClass();
   if (config) {
-    logger = config.logger || logger;
+    logger = config.logger;
   }
 
   /**
@@ -69,4 +69,10 @@ export function createPrismaUtils(
   };
 }
 export { Logger } from "./logger";
-export * from "./error";
+export {
+  BadRequestError,
+  HttpError,
+  NotFoundError,
+  UnauthorizedError,
+  UnexpectedError,
+} from "./error";

@@ -3,7 +3,7 @@
 type StatusCode = 200 | 201 | 202 | 400 | 401 | 403 | 404 | 500;
 
 
-export default class HttpError extends Error {
+export class HttpError extends Error {
   name: string;
   public readonly status: StatusCode;
   stack?: string | undefined;

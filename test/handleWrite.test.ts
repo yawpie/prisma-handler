@@ -1,5 +1,5 @@
 import { handlePrismaWrite } from "../src/handlePrismaWrite";
-import HttpError from "../src/error";
+import {HttpError} from "../src/error";
 import { Logger } from "../src/logger";
 import { describe, it, expect, beforeEach, jest, test } from "@jest/globals";
 import { mockPrismaErrorCode } from "../utils/mockPrismaErrorCode";

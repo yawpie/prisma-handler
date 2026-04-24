@@ -1,6 +1,6 @@
 {
   "name": "@yawpie/prisma-handler",
-  "version": "0.0.3-alpha",
+  "version": "0.1.0-alpha.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -18,7 +18,10 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "testMatch": ["**/*.test.ts", "**/*.spec.ts"]
+    "testMatch": [
+      "**/*.test.ts",
+      "**/*.spec.ts"
+    ]
   },
   "keywords": [
     "prisma",
