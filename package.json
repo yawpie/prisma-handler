@@ -10,7 +10,15 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": ["**/*.test.ts", "**/*.spec.ts"]
   },
   "keywords": [
     "prisma",
@@ -21,8 +29,11 @@
   "license": "ISC",
   "description": "A simple handler for managing Prisma operations",
   "devDependencies": {
+    "@jest/globals": "^30.3.0",
     "@types/node": "^22.15.29",
+    "jest": "^30.3.0",
     "prisma": "^5.0.0",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3"

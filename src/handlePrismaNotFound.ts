@@ -1,9 +1,9 @@
 import { randomUUID } from "crypto";
-import { BadRequestError, NotFoundError } from "./error";
+import { NotFoundError } from "./error";
 import { Logger } from "./logger";
 
 export async function handlePrismaNotFound<T>(
-  fn: () => Promise<T | null>,
+  fn: () => Promise<T>,
   logger?: Logger,
   options?: {
     traceId?: string;

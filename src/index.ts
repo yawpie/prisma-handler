@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Logger, LoggerClass } from "./logger";
 import { handlePrismaWrite } from "./handlePrismaWrite";
-import { handlePrismaNotFound } from "./handleNotFound";
+import { handlePrismaNotFound } from "./handlePrismaNotFound";
 // import {  } from "./error";
 
 export function createPrismaUtils(
