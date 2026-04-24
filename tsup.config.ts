@@ -7,10 +7,10 @@ export default defineConfig({
   format: ["cjs", "esm"],
 
   // generate type definitions
-    dts: true,
-//   dts: {
-//     resolve: true,
-//   },
+  dts: true,
+  //   dts: {
+  //     resolve: true,
+  //   },
 
   // clean dist folder before build
   clean: true,
@@ -29,4 +29,11 @@ export default defineConfig({
 
   // optional: minify
   minify: false,
+
+  outExtension({ format }) {
+    return {
+      js: format === "cjs" ? ".cjs" : ".js",
+    };
+  },
+  treeshake: true,
 });
