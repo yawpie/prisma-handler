@@ -1,61 +1,41 @@
-# prisma-operation-handler
+# @yawpie/prisma-handler
 
-A lightweight utility package for handling Prisma operations with consistent error mapping and structured logging.
-
-This repository provides a factory, `createPrismaUtils`, that helps you:
-
-- Wrap write operations with a standard error strategy.
-- Handle not-found results in a consistent way.
-- Add trace-aware logging metadata to Prisma write flows.
+A lightweight TypeScript utility library for wrapping Prisma operations with consistent error handling, HTTP-style error mapping, and optional structured logging.
 
 ## Features
 
-- Prisma write wrapper with HTTP-style error mapping.
-- Not-found wrapper for nullable query results.
-- Optional custom logger injection.
-- TypeScript-friendly API.
+- ✅ **Write Operation Wrapper** (`handleWrite`) - Maps Prisma errors to HTTP-style error codes
+- ✅ **Not-Found Handling** (`handleNotFound`) - Consistent handling for null/empty results
+- ✅ **Trace-Aware Logging** - Optional custom logger with operation tracking and traceId support
+- ✅ **Error Mapping** - Automatic conversion of Prisma error codes (P2002, P2003, P2025, etc.) to readable HTTP errors
+- ✅ **TypeScript-First** - Full type safety with generic function signatures
+- ✅ **Zero Dependencies** - Only requires Prisma as peer dependency
 
 ## Installation
 
-Install the package and Prisma client:
-
 ```bash
-npm install prisma-operation-handler @prisma/client
-```
-
-If your app does not already include Prisma CLI for schema/migrations, also install:
-
-```bash
-npm install -D prisma
+npm install @yawpie/prisma-handler @prisma/client
 ```
 
 ## Quick Start
 
 ```ts
 import { PrismaClient } from "@prisma/client";
-import { createPrismaUtils } from "prisma-operation-handler";
+import { createPrismaUtils } from "@yawpie/prisma-handler";
 
 const prisma = new PrismaClient();
-
 const { handleWrite, handleNotFound } = createPrismaUtils(prisma);
 
-async function createUser() {
+// Handle write operations with automatic error mapping
+async function createUser(email: string, name: string) {
   return handleWrite(
-    () =>
-      prisma.user.create({
-        data: {
-          email: "hello@example.com",
-          name: "Hello",
-        },
-      }),
+    () => prisma.user.create({ data: { email, name } }),
     "Failed to create user",
-    {
-      operation: "create-user",
-      // traceId is optional. If omitted, one is generated.
-    },
+    { operation: "create-user" }, // traceId is auto-generated if omitted
   );
 }
 
+// Handle read operations with not-found checking
 async function getUserById(id: string) {
   return handleNotFound(
     () => prisma.user.findUnique({ where: { id } }),
@@ -65,114 +45,160 @@ async function getUserById(id: string) {
 }
 ```
 
-## API
+## API Reference
 
 ### `createPrismaUtils(prisma, config?)`
 
-Creates and returns Prisma utility helpers.
+Factory function that creates utility wrappers for Prisma operations.
 
-Parameters:
+**Parameters:**
 
-- `prisma`: `PrismaClient`
-- `config` (optional):
-  - `logger` (optional): object implementing:
-    - `info(msg: string, meta?: any): void`
-    - `error(msg: string, meta?: any): void`
+- `prisma` (required): `PrismaClient` instance
+- `config` (optional): Configuration object
+  - `logger?` (optional): Custom logger implementing `{ info(msg, meta?): void; error(msg, meta?): void }`
 
-Returns:
+**Returns:**
 
-- prisma: the same Prisma client you passed in.
-- handleWrite: write-operation wrapper.
-- handleNotFound: not-found wrapper.
+```ts
+{
+  prisma: PrismaClient;           // Same instance passed in
+  handleWrite: <T>(...) => Promise<T>;
+  handleNotFound: <T>(...) => Promise<T>;
+}
+```
 
 ### `handleWrite(fn, defaultErrorMessage?, options?)`
 
-Wraps a Prisma write operation and maps known Prisma errors to `HttpError`.
+Wraps a Prisma write operation (create, update, delete) with error handling and logging.
 
-Parameters:
+**Parameters:**
 
-- `fn`: async function that performs the write operation.
-- `defaultErrorMessage` (optional): fallback message for unknown errors.
+- `fn` (required): Async function executing the Prisma write operation
+- `defaultErrorMessage` (optional): Fallback error message for unknown errors
 - `options` (optional):
-  - `traceId?: string`
-  - `operation?: string`
+  - `traceId?`: string (auto-generated if omitted)
+  - `operation?`: string (operation name for logging)
 
-Behavior:
+**Error Mapping:**
+| Prisma Code | HTTP Status | Meaning |
+|-------------|------------|---------|
+| P2002 | 400 | Unique constraint violation |
+| P2003 | 400 | Foreign key constraint failed |
+| P2004 | 400 | Invalid data |
+| P2005 | 400 | Value too long for column |
+| P2006 | 400 | Null constraint violation |
+| P2025 | 404 | Resource not found |
+| (other) | 500 | Unexpected error |
 
-- On success, returns `await fn()` result.
-- On known Prisma errors, throws `HttpError` with mapped status/message.
-- On unknown errors, throws `HttpError(defaultErrorMessage ?? "Something happened :( check logs", 500)`.
+**Example:**
 
-### `handleNotFound(fn, notFoundMessage?)`
+```ts
+try {
+  const user = await handleWrite(
+    () =>
+      prisma.user.update({
+        where: { id: "123" },
+        data: { name: "New Name" },
+      }),
+    "Failed to update user",
+    { operation: "update-user", traceId: "req-456" },
+  );
+} catch (error) {
+  // error.status contains HTTP status code
+  console.error(`Error: ${error.message} (${error.status})`);
+}
+```
 
-Wraps a query operation and throws when result is missing.
+### `handleNotFound(fn, options?, notFoundMessage?)`
 
-Parameters:
+Wraps a Prisma query operation with not-found detection and logging.
 
-- `fn`: `async function returning T | null`.
-- options (optional):
-  - `traceId?: string`
-  - `operation?: string`
-- `notFoundMessage (optional)`: defaults to "Resource not found".
+**Parameters:**
 
-Behavior:
+- `fn` (required): Async function executing the Prisma query
+- `options` (optional):
+  - `traceId?`: string (auto-generated if omitted)
+  - `operation?`: string (operation name for logging)
+- `notFoundMessage` (optional): Custom message for not-found errors (default: "Resource not found")
 
-- Throws `NotFoundError(notFoundMessage)` when:
-  - returned result is null/falsy
-  - returned result is an empty array
-  - Prisma throws P2025
+**Throws:**
 
-## Prisma Error Mapping (Write Wrapper)
+- `NotFoundError` (404) when:
+  - Query returns `null` or `undefined`
+  - Query returns an empty array
+  - Prisma throws error code `P2025`
+- Other errors are re-thrown unchanged
 
-`handleWrite` maps Prisma codes as follows:
+**Example:**
 
-| Prisma code | Message                         | Status |
-| ----------- | ------------------------------- | ------ |
-| P2002       | Duplicate value                 | 400    |
-| P2003       | Foreign key constraint failed   | 400    |
-| P2025       | Resource not found              | 404    |
-| P2004       | Invalid data                    | 400    |
-| P2005       | Data too long for column        | 400    |
-| P2006       | Null constraint violation       | 400    |
-| default     | defaultErrorMessage or fallback | 500    |
+```ts
+try {
+  const user = await handleNotFound(
+    () => prisma.user.findUnique({ where: { id: "123" } }),
+    { operation: "get-user" },
+    "User with ID 123 not found",
+  );
+} catch (error) {
+  if (error.status === 404) {
+    console.log("Not found:", error.message);
+  }
+}
+```
 
-## Logging
+## Custom Logger
 
-The write wrapper logs transaction outcomes with metadata:
+Pass a custom logger to capture operation details:
 
-- `traceId`
-- `operation`
-- `durationMs`
-- `error` (on failure)
+```ts
+const logger = {
+  info: (msg, meta) => console.log(`[INFO] ${msg}`, meta),
+  error: (msg, meta) => console.error(`[ERROR] ${msg}`, meta),
+};
 
-Default logger prints to console:
+const { handleWrite, handleNotFound } = createPrismaUtils(prisma, { logger });
+```
 
-- `info` via `console.log`
-- `error` via `console.error`
+Logger receives metadata including:
 
-You can inject your own logger implementation through `createPrismaUtils(prisma, { logger })`.
+- `operation`: Operation name from options
+- `traceId`: Trace ID for request tracking
+- `durationMs`: Operation duration in milliseconds
+
+## Error Classes
+
+The library exports custom error classes:
+
+```ts
+import {
+  HttpError, // Base error with status code
+  NotFoundError, // 404 errors
+  BadRequestError, // 400 errors
+  UnauthorizedError, // 401 errors
+  UnexpectedError, // 500 errors
+} from "@yawpie/prisma-handler";
+```
+
+## Tech Stack
+
+- **Language:** TypeScript 6.0+
+- **Runtime:** Node.js 18+
+- **ORM:** Prisma 5.0+
+- **Build:** tsup (CommonJS + ESM + TypeScript definitions)
 
 ## Development
 
-### Scripts
-
-- `npm run build` compiles and bundles the package to `dist`.
-- `npm run dev` starts `tsup` in watch mode.
-
-### TypeScript Build Output
-
-The package is built with tsup and outputs:
-
-- CJS and ESM formats
-- Type declarations (.d.ts)
-- sourcemaps
-
-## Current Notes
-
-- The package currently exports the Prisma utility factory and wrappers through the main entry.
-- Some custom error subclasses exist in source and are used internally for behavior.
-- The not-found helper currently throws `NotFoundError` for not-found conditions.
+```bash
+npm run build         # Build production bundle
+npm run dev           # Watch mode for development
+npm run test          # Run tests once
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Generate coverage report
+```
 
 ## License
 
 ISC
+
+## Author
+
+yawpie

@@ -1,6 +1,6 @@
 {
-  "name": "prisma-operation-handler",
-  "version": "0.0.2-alpha",
+  "name": "@yawpie/prisma-handler",
+  "version": "0.0.3-alpha",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -27,7 +27,7 @@
   ],
   "author": "yawpie",
   "license": "ISC",
-  "description": "A simple handler for managing Prisma operations",
+  "description": "A simple handler for managing Prisma write and read operations",
   "devDependencies": {
     "@jest/globals": "^30.3.0",
     "@types/node": "^22.15.29",
